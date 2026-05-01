@@ -158,8 +158,13 @@ serve users beyond the hybrid-zones use case.
 Defines the genetic structure of organisms being modeled: number of loci,
 ploidy, allele identities, dominance relationships, recombination rates
 between loci, and genotype-to-phenotype mapping. Concrete types include
-`OneLocusDiploid`, `MultiLocusUnlinked`, `MultiLocusRecombining`, with
-parameters for dominance and linkage.
+`OneLocusDiploid`, with `MultiLocusUnlinked` and `MultiLocusRecombining`
+planned for when a working multi-locus simulator requires them.
+
+Dominance is represented as a `Symbol` with three values: `:codominant`
+(additive), `:dominant_first` (first allele fully expressed in heterozygotes),
+and `:recessive_first` (first allele masked in heterozygotes). The "first"
+suffix refers to the first element of the `allele_names` tuple.
 
 ### `SelectionModels`
 
