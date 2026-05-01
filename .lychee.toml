@@ -4,10 +4,11 @@ exclude = [
   "^https://github.com/.*/releases/tag/v.*$",
   "^https://doi.org/FIXME$",
   "^https://alejandromerchan.github.io/HybridZones.jl/stable$",
+  "^https://alejandromerchan.github.io/HybridZones.jl/dev",
   "^https://blog.esciencecenter.nl", # due to a certificate error (cf. #556)
-  "zenodo.org/badge/DOI/FIXME$"
+  "zenodo.org/badge/DOI/FIXME$",
+  "^https://github.com/alejandromerchan/HybridZones\\.jl/compare/v.*\\.\\.\\.HEAD$",
 ]
-
 exclude_path = [
   "docs/build"
 ]
