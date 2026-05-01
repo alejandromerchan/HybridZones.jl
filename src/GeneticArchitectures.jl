@@ -52,11 +52,8 @@ function OneLocusDiploid(;
     dominance::Symbol = :codominant,
     allele_names::NTuple{2,String} = ("A1", "A2"),
 )
-    dominance ∈ _VALID_DOMINANCE || throw(
-        ArgumentError(
-            "dominance must be one of $_VALID_DOMINANCE, got :$dominance",
-        ),
-    )
+    dominance ∈ _VALID_DOMINANCE ||
+        throw(ArgumentError("dominance must be one of $_VALID_DOMINANCE, got :$dominance"))
     return OneLocusDiploid(dominance, allele_names)
 end
 
