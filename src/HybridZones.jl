@@ -25,7 +25,13 @@ reimplementation in Rosser, Dasmahapatra & Mallet (2014).
 """
 module HybridZones
 
+include("GeneticArchitectures.jl")
+using .GeneticArchitectures:
+    GeneticArchitecture, OneLocusDiploid, dominance, n_loci, n_alleles, allele_names
+
 export package_version
+export GeneticArchitecture, OneLocusDiploid
+export dominance, n_loci, n_alleles, allele_names
 
 """
     package_version()
