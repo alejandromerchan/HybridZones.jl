@@ -1,0 +1,7 @@
+[deps]
+HybridZones = "1949dd84-9a29-5428-b241-acf0d0228a3d"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+TOML = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
+
+[sources]
+HybridZones = {path = ".."}

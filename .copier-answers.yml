@@ -1,0 +1,43 @@
+# Changes here will be overwritten by Copier
+AddAllcontributors: false
+AddChangelog: true
+AddCitationCFF: true
+AddCodeOfConduct: true
+AddContributionDocs: true
+AddCopierCI: true
+AddDocs: true
+AddDocsCI: true
+AddFormatterAndLinterConfigFiles: true
+AddGitHubPRTemplate: true
+AddGitHubTemplates: true
+AddLintCI: true
+AddLychee: true
+AddMacToCI: false
+AddPrecommit: true
+AddPrecommitUpdateCI: true
+AddTagBotCI: true
+AddTestCI: true
+AddWinToCI: false
+Authors: H. Alejandro Merchan <hector.merchan@gmail.com>
+CheckExplicitImports: true
+CodeOfConductContact: hector.merchan@gmail.com
+ConfigIndentation: 2
+ExplicitImportsChecklist: no_implicit_imports,no_stale_explicit_imports
+GitHubActionVersionAutoUpdate: dependabot
+JuliaCompatAutoUpdate: compathelper
+JuliaIndentation: 4
+JuliaMinCIVersion: lts
+JuliaMinVersion: '1.10'
+License: MIT
+LicenseCopyrightHolders: H. Alejandro Merchan
+MarkdownIndentation: 2
+PackageName: HybridZones
+PackageOwner: alejandromerchan
+PackageUUID: 1949dd84-9a29-5428-b241-acf0d0228a3d
+RunJuliaNightlyOnCI: true
+StrategyConfirmIncluded: true
+StrategyLevel: 2
+StrategyReviewExcluded: true
+TestingStrategy: basic_auto_discover
+UseCirrusCI: false
+_src_path: /home/alejandro/.julia/packages/BestieTemplate/6QVd6

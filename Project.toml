@@ -1,0 +1,10 @@
+name = "HybridZones"
+uuid = "1949dd84-9a29-5428-b241-acf0d0228a3d"
+authors = ["H. Alejandro Merchan <hector.merchan@gmail.com>"]
+version = "0.1.0"
+
+[workspace]
+projects = ["test", "docs"]
+
+[compat]
+julia = "1.10"
