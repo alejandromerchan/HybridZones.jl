@@ -26,3 +26,14 @@ HybridZones.GeneticArchitectures.n_loci
 HybridZones.GeneticArchitectures.n_alleles
 HybridZones.GeneticArchitectures.allele_names
 ```
+
+## Migration models
+
+```@docs
+HybridZones.MigrationModels.MigrationModel
+HybridZones.MigrationModels.BinomialStepping
+HybridZones.MigrationModels.migrate!
+HybridZones.MigrationModels.migration_variance
+HybridZones.MigrationModels.max_distance
+HybridZones.MigrationModels.kernel
+```

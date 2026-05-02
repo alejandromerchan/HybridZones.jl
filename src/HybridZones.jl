@@ -29,9 +29,15 @@ include("GeneticArchitectures.jl")
 using .GeneticArchitectures:
     GeneticArchitecture, OneLocusDiploid, dominance, n_loci, n_alleles, allele_names
 
+include("MigrationModels.jl")
+using .MigrationModels:
+    MigrationModel, BinomialStepping, migrate!, migration_variance, max_distance
+
 export package_version
 export GeneticArchitecture, OneLocusDiploid
 export dominance, n_loci, n_alleles, allele_names
+export MigrationModel, BinomialStepping, migrate!
+export migration_variance, max_distance
 
 """
     package_version()
