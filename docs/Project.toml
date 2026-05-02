@@ -1,10 +1,10 @@
 [deps]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
-LiveServer = "16fef848-5104-11e9-1b77-fb7a48bbb589"
 HybridZones = "1949dd84-9a29-5428-b241-acf0d0228a3d"
+LiveServer = "16fef848-5104-11e9-1b77-fb7a48bbb589"
+
+[sources]
+HybridZones = {path = "/home/alejandromerchan/HybridZones.jl"}
 
 [compat]
 Documenter = "1"
-
-[sources]
-HybridZones = {path = ".."}

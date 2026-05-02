@@ -1,10 +1,14 @@
 name = "HybridZones"
 uuid = "1949dd84-9a29-5428-b241-acf0d0228a3d"
-authors = ["H. Alejandro Merchan <hector.merchan@gmail.com>"]
 version = "0.1.0"
+authors = ["H. Alejandro Merchan <hector.merchan@gmail.com>"]
 
 [workspace]
 projects = ["test", "docs"]
 
+[deps]
+Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
+
 [compat]
+Distributions = "0.25"
 julia = "1.10"
