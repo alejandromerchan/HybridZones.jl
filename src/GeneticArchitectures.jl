@@ -45,12 +45,12 @@ julia> allele_names(arch)
 """
 struct OneLocusDiploid <: GeneticArchitecture
     dominance::Symbol
-    allele_names::NTuple{2,String}
+    allele_names::NTuple{2, String}
 end
 
 function OneLocusDiploid(;
-    dominance::Symbol = :codominant,
-    allele_names::NTuple{2,String} = ("A1", "A2"),
+        dominance::Symbol = :codominant,
+        allele_names::NTuple{2, String} = ("A1", "A2")
 )
     dominance ∈ _VALID_DOMINANCE ||
         throw(ArgumentError("dominance must be one of $_VALID_DOMINANCE, got :$dominance"))

@@ -77,7 +77,7 @@ function BinomialStepping(σ²::Real; α::Real = 0.5)
     0 < α < 1 || throw(ArgumentError("α must be in (0, 1), got $α"))
     n = ceil(Int, σ² / (2 * α * (1 - α)))
     dist = Binomial(2n, α)
-    kernel = [pdf(dist, n + i) for i = (-n):n]
+    kernel = [pdf(dist, n + i) for i in (-n):n]
     sum(kernel) > 0 || throw(
         ArgumentError("migration kernel is degenerate (all-zero) for σ²=$σ², α=$α, n=$n"),
     )
@@ -142,19 +142,19 @@ true
 ```
 """
 function migrate!(
-    freq_next::AbstractVector,
-    freq_current::AbstractVector,
-    m::BinomialStepping,
+        freq_next::AbstractVector,
+        freq_current::AbstractVector,
+        m::BinomialStepping
 )
     length(freq_next) == length(freq_current) ||
         throw(DimensionMismatch("freq_next and freq_current must have equal length"))
     n_demes = length(freq_current)
     n = m.n
-    @inbounds for j = 1:n_demes
+    @inbounds for j in 1:n_demes
         s = 0.0
-        for i = (-n):n
+        for i in (-n):n
             source = j + i
-            w = m.kernel[n+1+i]
+            w = m.kernel[n + 1 + i]
             if source < 1
                 s += w * freq_current[1]
             elseif source > n_demes
