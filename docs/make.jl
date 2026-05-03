@@ -5,7 +5,7 @@ DocMeta.setdocmeta!(HybridZones, :DocTestSetup, :(using HybridZones); recursive 
 
 # Add titles of sections and overrides page titles
 const titles = Dict(
-    # "10-tutorials" => "Tutorials", # example folder title
+# "10-tutorials" => "Tutorials", # example folder title
     "91-developer.md" => "Developer docs",
 )
 
@@ -66,7 +66,7 @@ makedocs(;
     format = Documenter.HTML(;
         canonical = "https://alejandromerchan.github.io/HybridZones.jl",
     ),
-    pages = list_pages(),
+    pages = list_pages()
 )
 
 deploydocs(; repo = "github.com/alejandromerchan/HybridZones.jl")
