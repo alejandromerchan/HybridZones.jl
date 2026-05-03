@@ -35,11 +35,17 @@ using .MigrationModels:
                         MigrationModel, BinomialStepping, migrate!, migration_variance,
                         max_distance
 
+include("SelectionModels.jl")
+using .SelectionModels:
+                        SelectionModel, FrequencyDependentSelection, select!,
+                        selection_coefficient
+
 export package_version
 export GeneticArchitecture, OneLocusDiploid
 export dominance, n_loci, n_alleles, allele_names
 export MigrationModel, BinomialStepping, migrate!
 export migration_variance, max_distance
+export SelectionModel, FrequencyDependentSelection, select!, selection_coefficient
 
 """
     package_version()
