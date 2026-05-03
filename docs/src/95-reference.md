@@ -37,3 +37,12 @@ HybridZones.MigrationModels.migration_variance
 HybridZones.MigrationModels.max_distance
 HybridZones.MigrationModels.kernel
 ```
+
+## Selection models
+
+```@docs
+HybridZones.SelectionModels.SelectionModel
+HybridZones.SelectionModels.FrequencyDependentSelection
+HybridZones.SelectionModels.select!
+HybridZones.SelectionModels.selection_coefficient
+```
