@@ -53,6 +53,65 @@ These are deliberate exclusions. Tools that try to do everything tend to do
 nothing especially well, and the existing tools listed handle their respective
 niches better than a from-scratch reimplementation would.
 
+## Out of scope for v1
+
+The following modeling capabilities are recognized as valuable
+extensions but are deliberately deferred from the initial scope.
+Documenting them here helps users with such needs select appropriate
+alternative tools and helps future contributors understand which
+extensions would be welcome.
+
+**Population density dynamics.** The current framework assumes constant
+carrying capacity at every deme — populations are always full, and
+migration redistributes frequencies rather than absolute numbers of
+individuals. Scenarios involving range expansion into empty habitat,
+demographic bottlenecks, founder effects, or density-dependent
+dynamics require a different state representation that tracks
+population density alongside genotype frequencies. The reaction-
+diffusion framework of Sasaki, Kawaguchi & Yoshimori (2002) is the
+natural mathematical reference for such extensions.
+
+**Two-dimensional spatial structure.** The framework treats space as
+a one-dimensional transect of demes. Real hybrid zones are
+two-dimensional phenomena, and 2D systems can produce stable spatial
+mosaics rather than smooth clines (Sasaki et al. 2002). Adding 2D
+support would require new migration models and visualizations but
+the existing genetic architecture and selection model abstractions
+would carry over largely unchanged. The architecture document's
+"State representation as plain numerical arrays" principle leaves
+this extension path open.
+
+**Stochastic dynamics and genetic drift.** The current framework is
+fully deterministic. Real populations experience genetic drift,
+particularly at small effective population sizes, and stochastic
+extinction-recolonization dynamics in metapopulations. A stochastic
+extension would track individuals or use diffusion approximations
+rather than exact frequency dynamics. Kruuk, Baird, Gale & Barton
+(1999) discuss the role of drift in their multilocus framework.
+
+**Time-varying parameters.** Selection coefficients, migration rates,
+and dominance are treated as constant across generations. Real
+systems may have temporally varying selection (predator learning,
+seasonal effects, climate change) or temporally varying migration
+(barrier formation/dissolution). Time-varying selection could be
+implemented as a wrapper around existing selection models that
+modulates parameters per generation; time-varying migration similarly.
+
+**Continuous-space models.** Demes are discrete in this framework,
+matching the original Pascal implementations. Some applications
+benefit from continuous-space formulations using partial differential
+equations (cline width as a continuous function of position rather
+than a per-deme array). The discrete-deme approach is simpler to
+implement, validate, and reason about, but represents an
+approximation when dispersal scales are large relative to deme
+spacing.
+
+Users needing any of these capabilities should consider
+complementary tools: SLiM for general-purpose stochastic forward
+simulation, msprime for backward-in-time coalescent simulation, or
+custom implementations of the Sasaki et al. reaction-diffusion
+framework for population density dynamics.
+
 ## Historical lineage
 
 The framework HybridZones.jl modernizes was originally developed in Turbo
@@ -76,6 +135,18 @@ Key references:
 The original Pascal sources, PowerBASIC sources, and Excel validation
 spreadsheet from the 2003 disequilibrium-estimator debugging session are
 preserved in the project's reference materials.
+
+The framework has been extended in several theoretical directions
+that are referenced throughout this document but not implemented in
+the initial package version:
+
+- Kruuk, L. E. B., Baird, S. J. E., Gale, K. S. and Barton, N. H. (1999).
+  A comparison of multilocus clines maintained by environmental
+  adaptation or by selection against hybrids. *Genetics* 153: 1959-1971.
+
+- Sasaki, A., Kawaguchi, I. and Yoshimori, A. (2002). Spatial mosaic
+  and interfacial dynamics in a Müllerian mimicry system. *Theoretical
+  Population Biology* 61: 49-71.
 
 ## Architectural principles
 
