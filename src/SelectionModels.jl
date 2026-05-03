@@ -75,10 +75,10 @@ Apply one generation of frequency-dependent selection in-place.
 Computes post-selection genotype frequencies from `freq_current` and writes
 them into `freq_next`. Both matrices must have the same size.
 
-## Matrix layout
+## Matrix layout convention
 
-The canonical state for a single-locus diploid simulation is a
-`3 × n_demes` matrix (rows index genotypes, columns index demes):
+State matrices use the convention `rows = genotypes, columns = demes`.
+For a `OneLocusDiploid` architecture, this means a 3×n_demes matrix:
 
 | Row | Genotype |
 |-----|----------|
@@ -86,8 +86,11 @@ The canonical state for a single-locus diploid simulation is a
 | 2   | A1A2     |
 | 3   | A2A2     |
 
-This layout is cache-friendly for Julia's column-major memory order: iterating
-over demes accesses three contiguous Float64 values per column.
+
+This layout is chosen for cache efficiency: Julia's column-major storage
+means each deme's three genotype frequencies are contiguous in memory.
+Users coming from R or Python may need to transpose their input data,
+since those languages typically use rows-as-observations conventions.
 
 ## Genotype-to-phenotype mapping
 
