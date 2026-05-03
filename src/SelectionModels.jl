@@ -1,6 +1,6 @@
 module SelectionModels
 
-using ..GeneticArchitectures: GeneticArchitecture, OneLocusDiploid, dominance
+using ..GeneticArchitectures: OneLocusDiploid, dominance
 
 export SelectionModel, FrequencyDependentSelection
 export select!, selection_coefficient
