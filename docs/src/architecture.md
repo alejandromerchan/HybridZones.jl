@@ -128,6 +128,18 @@ Genotype-to-phenotype mappings, dominance specifications, and recombination
 matrices are stored as small lookup tables computed once at simulation start,
 not as functions called per-update.
 
+**Matrix layout convention.** Multi-genotype state is stored as
+`Matrix{Float64}` with rows as genotypes and columns as demes. This is
+chosen for cache efficiency under Julia's column-major storage: each
+deme's full set of genotype frequencies is contiguous in memory,
+matching the access pattern of selection and migration loops. Users
+with backgrounds in R or Python (where row-as-observation is the norm)
+may find this surprising; the orientation is the same as a column-major
+MATLAB matrix or Fortran array. The convention applies consistently
+across all multi-genotype state in the package: arguments to `select!`,
+return values from future `simulate` functions, and any matrix
+representation of population state.
+
 ### Validation as a first-class concern
 
 The package's correctness is anchored to historical reference implementations
