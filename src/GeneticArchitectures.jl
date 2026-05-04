@@ -1,7 +1,7 @@
 module GeneticArchitectures
 
 export GeneticArchitecture, OneLocusDiploid
-export dominance, n_loci, n_alleles, allele_names
+export dominance, n_loci, n_alleles, allele_names, n_genotypes
 
 """
     GeneticArchitecture
@@ -85,5 +85,23 @@ n_alleles(::OneLocusDiploid) = 2
 Return the two allele labels.
 """
 allele_names(arch::OneLocusDiploid) = arch.allele_names
+
+"""
+    n_genotypes(arch::OneLocusDiploid) -> Int
+
+Return the number of genotype classes. Always 3 for `OneLocusDiploid`
+(A1A1, A1A2, A2A2).
+
+# Examples
+```jldoctest
+julia> using HybridZones
+
+julia> arch = OneLocusDiploid();
+
+julia> n_genotypes(arch)
+3
+```
+"""
+n_genotypes(::OneLocusDiploid) = 3
 
 end # module GeneticArchitectures
