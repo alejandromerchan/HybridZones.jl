@@ -28,7 +28,7 @@ module HybridZones
 include("GeneticArchitectures.jl")
 using .GeneticArchitectures:
                              GeneticArchitecture, OneLocusDiploid, dominance, n_loci,
-                             n_alleles, allele_names
+                             n_alleles, allele_names, n_genotypes
 
 include("MigrationModels.jl")
 using .MigrationModels:
@@ -40,12 +40,16 @@ using .SelectionModels:
                         SelectionModel, FrequencyDependentSelection, select!,
                         selection_coefficient
 
+include("Simulation.jl")
+using .Simulation: simulate, secondary_contact, allele_frequencies
+
 export package_version
 export GeneticArchitecture, OneLocusDiploid
-export dominance, n_loci, n_alleles, allele_names
+export dominance, n_loci, n_alleles, allele_names, n_genotypes
 export MigrationModel, BinomialStepping, migrate!
 export migration_variance, max_distance
 export SelectionModel, FrequencyDependentSelection, select!, selection_coefficient
+export simulate, secondary_contact, allele_frequencies
 
 """
     package_version()

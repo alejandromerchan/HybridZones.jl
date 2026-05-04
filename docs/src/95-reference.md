@@ -25,6 +25,16 @@ HybridZones.GeneticArchitectures.dominance
 HybridZones.GeneticArchitectures.n_loci
 HybridZones.GeneticArchitectures.n_alleles
 HybridZones.GeneticArchitectures.allele_names
+HybridZones.GeneticArchitectures.n_genotypes
+```
+
+## Selection models
+
+```@docs
+HybridZones.SelectionModels.SelectionModel
+HybridZones.SelectionModels.FrequencyDependentSelection
+HybridZones.SelectionModels.select!
+HybridZones.SelectionModels.selection_coefficient
 ```
 
 ## Migration models
@@ -38,11 +48,10 @@ HybridZones.MigrationModels.max_distance
 HybridZones.MigrationModels.kernel
 ```
 
-## Selection models
+## Simulation
 
 ```@docs
-HybridZones.SelectionModels.SelectionModel
-HybridZones.SelectionModels.FrequencyDependentSelection
-HybridZones.SelectionModels.select!
-HybridZones.SelectionModels.selection_coefficient
+HybridZones.Simulation.simulate
+HybridZones.Simulation.secondary_contact
+HybridZones.Simulation.allele_frequencies
 ```
