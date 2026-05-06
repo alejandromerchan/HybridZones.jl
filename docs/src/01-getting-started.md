@@ -189,9 +189,9 @@ build.
 ## What's next
 
 The [Reference](95-reference.md) page documents all exported types and
-functions with their full parameter lists. The [Architecture](architecture.md)
+functions with their full parameter lists. The [Architecture](10-architecture.md)
 document describes the package's design principles and the rationale for the
-composition-over-hardcoding approach. The [Performance](performance.md) document
+composition-over-hardcoding approach. The [Performance](20-performance.md) document
 covers benchmarking methodology and identified optimization opportunities.
 
 For further exploration, a few directions are worth trying once the basic
