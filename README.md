@@ -28,7 +28,7 @@ HybridZones.jl is under active development. The current state:
   are planned but not yet implemented
 - The package is not yet registered with the Julia General registry
 
-See the [architecture document](docs/src/architecture.md) for the
+See the [architecture document](docs/src/10-architecture.md) for the
 full development roadmap and design intent.
 
 ## Background
@@ -94,8 +94,8 @@ Full documentation is at
 Key pages:
 
 - [Getting Started](https://alejandromerchan.github.io/HybridZones.jl/dev/01-getting-started/) — your first simulation
-- [Architecture](https://alejandromerchan.github.io/HybridZones.jl/dev/architecture/) — design intent and development roadmap
-- [Performance](https://alejandromerchan.github.io/HybridZones.jl/dev/performance/) — benchmarking and optimization notes
+- [Architecture](https://alejandromerchan.github.io/HybridZones.jl/dev/10-architecture/) — design intent and development roadmap
+- [Performance](https://alejandromerchan.github.io/HybridZones.jl/dev/20-performance/) — benchmarking and optimization notes
 - [API Reference](https://alejandromerchan.github.io/HybridZones.jl/dev/95-reference/) — full function and type documentation
 
 ## Contributing
