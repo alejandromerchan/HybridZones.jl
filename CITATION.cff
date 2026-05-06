@@ -1,10 +1,103 @@
-# Go to https://citation-file-format.github.io/cff-initializer-javascript/#/ to finish this
 cff-version: 1.2.0
 title: HybridZones.jl
-message: >-
-  If you use this software, please cite it using the
-  metadata from this file.
+message: "If you use this package in your research, please cite it using the metadata below, alongside the foundational papers listed in 'references'."
 type: software
 authors:
-  - given-names: H. Alejandro Merchan
+  - family-names: Merchan
+    given-names: H. Alejandro
     email: hector.merchan@gmail.com
+version: 0.1.0
+date-released: 2026-05-05
+repository-code: "https://github.com/alejandromerchan/HybridZones.jl"
+license: MIT
+references:
+  - type: article
+    authors:
+      - family-names: Mallet
+        given-names: James
+      - family-names: Barton
+        given-names: Nicholas H.
+    title: "Inference from clines stabilized by frequency-dependent selection"
+    journal: Genetics
+    volume: 122
+    issue: 4
+    start: 967
+    end: 976
+    year: 1989
+    doi: 10.1093/genetics/122.4.967
+
+  - type: article
+    authors:
+      - family-names: Mallet
+        given-names: James
+      - family-names: Barton
+        given-names: Nicholas
+      - family-names: Lamas
+        given-names: Gerardo
+      - family-names: Santisteban
+        given-names: Jose
+      - family-names: Muedas
+        given-names: Manuel
+      - family-names: Eeley
+        given-names: Harriet
+    title: "Estimates of selection and gene flow from measures of cline width and linkage disequilibrium in Heliconius hybrid zones"
+    journal: Genetics
+    volume: 124
+    issue: 4
+    start: 921
+    end: 936
+    year: 1990
+    doi: 10.1093/genetics/124.4.921
+
+  - type: article
+    authors:
+      - family-names: Kruuk
+        given-names: Loeske E. B.
+      - family-names: Baird
+        given-names: Stuart J. E.
+      - family-names: Gale
+        given-names: Karen S.
+      - family-names: Barton
+        given-names: Nicholas H.
+    title: "A comparison of multilocus clines maintained by environmental adaptation or by selection against hybrids"
+    journal: Genetics
+    volume: 153
+    issue: 4
+    start: 1959
+    end: 1971
+    year: 1999
+    doi: 10.1093/genetics/153.4.1959
+
+  - type: article
+    authors:
+      - family-names: Sasaki
+        given-names: Akira
+      - family-names: Kawaguchi
+        given-names: Itsuro
+      - family-names: Yoshimori
+        given-names: Atsushi
+    title: "Spatial mosaic and interfacial dynamics in a Müllerian mimicry system"
+    journal: Theoretical Population Biology
+    volume: 61
+    issue: 1
+    start: 49
+    end: 71
+    year: 2002
+    doi: 10.1006/tpbi.2001.1553
+
+  - type: article
+    authors:
+      - family-names: Rosser
+        given-names: Neil
+      - family-names: Dasmahapatra
+        given-names: Kanchon K.
+      - family-names: Mallet
+        given-names: James
+    title: "Stable Heliconius butterfly hybrid zones are correlated with a local rainfall peak at the edge of the Amazon basin"
+    journal: Evolution
+    volume: 68
+    issue: 12
+    start: 3470
+    end: 3484
+    year: 2014
+    doi: 10.1111/evo.12539
