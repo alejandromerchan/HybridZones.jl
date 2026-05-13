@@ -128,6 +128,24 @@ implements Pascal's original `MigrationSelection` algorithm as an
 explicit alternative to the default separated form. This is not
 currently planned but the architecture supports such an extension.
 
+### Update: Hardy-Weinberg restoration
+
+A second algorithmic difference was subsequently identified. The previous
+HybridZones.jl implementation applied selection and migration each generation
+but did not include an explicit mating step. Migration mixing across demes
+introduces Wahlund-effect heterozygote deficits relative to Hardy-Weinberg
+expectations, and without an explicit mating step these deficits accumulate
+over generations, artificially sharpening the cline.
+
+Pascal's `WC1SEDO.PAS` includes an implicit HW restoration at each generation
+as part of its state update. The `MatingModels` submodule (added in a
+subsequent PR) adds `RandomMating` as the initial concrete mating type, which
+restores HW proportions within each deme each generation. The default simulate
+lifecycle is now `:mate_migrate_select`, matching Pascal's per-generation
+ordering. This partially closes the cline-width gap relative to Pascal; the
+remaining discrepancy is attributable to the fused vs. separated
+selection-migration difference described above.
+
 ## Tolerance for regression tests
 
 Regression tests against the Pascal reference data use the cline

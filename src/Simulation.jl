@@ -3,6 +3,7 @@ module Simulation
 using ..GeneticArchitectures: OneLocusDiploid, n_genotypes
 using ..SelectionModels: SelectionModel, select!
 using ..MigrationModels: MigrationModel, migrate!
+using ..MatingModels: MatingModel, mate!
 
 export simulate, secondary_contact, allele_frequencies
 
@@ -139,22 +140,43 @@ function allele_frequencies(
 end
 
 """
-    simulate(arch, sel, mig, initial_state; n_generations, lifecycle_order=:selection_first, save_trajectory=true)
+    simulate(arch, mat, sel, mig, initial_state; n_generations, lifecycle_order=:mate_migrate_select, save_trajectory=true)
 
 Run a forward simulation of a hybrid zone for `n_generations` generations.
 
-Each generation applies selection and migration in the order specified by
-`lifecycle_order`. The default `:selection_first` ordering — selection then
-migration — models organisms where juveniles experience local selection before
-adults disperse. `:migration_first` models organisms with passively-dispersed
-propagules that settle before experiencing local selection.
+Each generation applies mating, selection, and migration in the order specified
+by `lifecycle_order`. The default `:mate_migrate_select` ordering — mating, then
+migration, then selection — matches Mallet's Pascal reference implementation and
+is the recommended default for warning-color hybrid zone models.
+
+## Lifecycle orderings
+
+- `:mate_migrate_select` (default): mating restores Hardy-Weinberg within demes,
+  then migration redistributes frequencies across demes, then selection acts on
+  local frequencies. This matches Jim Mallet's standard Pascal ordering.
+- `:mate_select_migrate`: mating, then selection, then migration. An alternative
+  ordering for organisms where dispersal occurs after selection.
+- `:select_migrate_mate`: selection first, then migration, then mating at the
+  end of the generation. Biologically valid for organisms where dispersal occurs
+  late in the life cycle after selection has acted, with mating completing the
+  generation.
+
+Other values raise an `ArgumentError`.
+
+## Breaking change from previous API
+
+The previous signature was `simulate(arch, sel, mig, initial_state; ...)`.
+The new signature inserts `mat::MatingModel` as the second positional argument:
+`simulate(arch, mat, sel, mig, initial_state; ...)`. No backward-compatible
+default method is provided — the behavior change (HW restoration each generation)
+is significant enough to require explicit user choice.
 
 ## Buffer reuse
 
 The inner loop preallocates working buffers and updates them in place, avoiding
-per-generation heap allocation. For `save_trajectory = true`, a single
-intermediate buffer is allocated alongside the trajectory array. For
-`save_trajectory = false`, two buffers are ping-ponged each generation.
+per-generation heap allocation. For `save_trajectory = true`, two intermediate
+scratch buffers are allocated alongside the trajectory array. For
+`save_trajectory = false`, three buffers are rotated per operation each generation.
 
 ## Migration convention
 
@@ -165,6 +187,7 @@ in the Pascal reference implementation.
 
 # Arguments
 - `arch::OneLocusDiploid`: genetic architecture
+- `mat::MatingModel`: mating model (e.g. `RandomMating()`)
 - `sel::SelectionModel`: selection model
 - `mig::MigrationModel`: migration model
 - `initial_state::AbstractMatrix`: `n_genotypes × n_demes` genotype frequency matrix;
@@ -172,7 +195,8 @@ in the Pascal reference implementation.
 
 # Keyword arguments
 - `n_generations::Int`: number of generations to simulate; must be positive
-- `lifecycle_order::Symbol`: `:selection_first` (default) or `:migration_first`
+- `lifecycle_order::Symbol`: `:mate_migrate_select` (default), `:mate_select_migrate`,
+  or `:select_migrate_mate`
 - `save_trajectory::Bool`: if `true` (default), return all generations; if `false`,
   return only the final state (more memory-efficient for long runs)
 
@@ -189,13 +213,15 @@ julia> using HybridZones
 
 julia> arch = OneLocusDiploid(dominance = :codominant);
 
+julia> mat = RandomMating();
+
 julia> sel = FrequencyDependentSelection(s = 0.3);
 
 julia> mig = BinomialStepping(30.0);
 
 julia> initial = secondary_contact(arch);
 
-julia> trajectory = simulate(arch, sel, mig, initial; n_generations = 10);
+julia> trajectory = simulate(arch, mat, sel, mig, initial; n_generations = 10);
 
 julia> size(trajectory)
 (3, 101, 11)
@@ -211,18 +237,20 @@ julia> length(final_cline)
 """
 function simulate(
         arch::OneLocusDiploid,
+        mat::MatingModel,
         sel::SelectionModel,
         mig::MigrationModel,
         initial_state::AbstractMatrix;
         n_generations::Int,
-        lifecycle_order::Symbol = :selection_first,
+        lifecycle_order::Symbol = :mate_migrate_select,
         save_trajectory::Bool = true
 )
     n_generations > 0 ||
         throw(ArgumentError("n_generations must be positive, got $n_generations"))
-    lifecycle_order ∈ (:selection_first, :migration_first) ||
+    lifecycle_order ∈ (:mate_migrate_select, :mate_select_migrate, :select_migrate_mate) ||
         throw(ArgumentError(
-            "lifecycle_order must be :selection_first or :migration_first, got :$lifecycle_order"
+            "lifecycle_order must be :mate_migrate_select, :mate_select_migrate, " *
+            "or :select_migrate_mate, got :$lifecycle_order"
         ))
     ng = n_genotypes(arch)
     size(initial_state, 1) == ng ||
@@ -242,42 +270,69 @@ function simulate(
     if save_trajectory
         trajectory = zeros(Float64, ng, n_demes, n_generations + 1)
         trajectory[:, :, 1] .= initial_state
-        buf = zeros(Float64, ng, n_demes)
+        buf_a = zeros(Float64, ng, n_demes)
+        buf_b = zeros(Float64, ng, n_demes)
         for g in 1:n_generations
             current = @view(trajectory[:, :, g])
             next = @view(trajectory[:, :, g + 1])
-            if lifecycle_order === :selection_first
-                select!(buf, current, sel, arch)
-                for i in 1:ng
-                    migrate!(@view(next[i, :]), @view(buf[i, :]), mig)
-                end
-            else
-                for i in 1:ng
-                    migrate!(@view(buf[i, :]), @view(current[i, :]), mig)
-                end
-                select!(next, buf, sel, arch)
-            end
+            _apply_lifecycle!(next, current, buf_a, buf_b, mat, sel, mig, arch,
+                lifecycle_order, ng)
         end
         return trajectory
     else
+        # Three rotating buffers: buf_a holds the current state, buf_b and buf_c
+        # are intermediates. _apply_lifecycle! writes the result back into buf_a
+        # (out === current is safe because each lifecycle step fully consumes its
+        # input before writing its output to a separate buffer).
         buf_a = similar(initial_state, Float64)
         buf_a .= initial_state
         buf_b = similar(buf_a)
+        buf_c = similar(buf_a)
         for _ in 1:n_generations
-            if lifecycle_order === :selection_first
-                select!(buf_b, buf_a, sel, arch)
-                for i in 1:ng
-                    migrate!(@view(buf_a[i, :]), @view(buf_b[i, :]), mig)
-                end
-            else
-                for i in 1:ng
-                    migrate!(@view(buf_b[i, :]), @view(buf_a[i, :]), mig)
-                end
-                select!(buf_a, buf_b, sel, arch)
-            end
+            _apply_lifecycle!(buf_a, buf_a, buf_b, buf_c, mat, sel, mig, arch,
+                lifecycle_order, ng)
         end
         return buf_a
     end
+end
+
+# Apply one full lifecycle, writing the result into `out`.
+# `current` is the read-only input state; `tmp1` and `tmp2` are scratch buffers.
+# Safe to call with out === current: each step finishes reading its input
+# before the next step writes to a different buffer.
+function _apply_lifecycle!(
+        out::AbstractMatrix,
+        current::AbstractMatrix,
+        tmp1::AbstractMatrix,
+        tmp2::AbstractMatrix,
+        mat::MatingModel,
+        sel::SelectionModel,
+        mig::MigrationModel,
+        arch::OneLocusDiploid,
+        lifecycle_order::Symbol,
+        ng::Int
+)
+    if lifecycle_order === :mate_migrate_select
+        mate!(tmp1, current, mat, arch)
+        for i in 1:ng
+            migrate!(@view(tmp2[i, :]), @view(tmp1[i, :]), mig)
+        end
+        select!(out, tmp2, sel, arch)
+    elseif lifecycle_order === :mate_select_migrate
+        mate!(tmp1, current, mat, arch)
+        select!(tmp2, tmp1, sel, arch)
+        for i in 1:ng
+            migrate!(@view(out[i, :]), @view(tmp2[i, :]), mig)
+        end
+    else
+        # :select_migrate_mate
+        select!(tmp1, current, sel, arch)
+        for i in 1:ng
+            migrate!(@view(tmp2[i, :]), @view(tmp1[i, :]), mig)
+        end
+        mate!(out, tmp2, mat, arch)
+    end
+    return out
 end
 
 end # module Simulation

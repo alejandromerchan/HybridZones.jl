@@ -49,6 +49,7 @@ using HybridZones
 
 # Build the model components
 arch = OneLocusDiploid(dominance = :codominant)
+mat  = RandomMating()
 sel  = FrequencyDependentSelection(s = 0.3)
 mig  = BinomialStepping(30.0)
 
@@ -56,7 +57,7 @@ mig  = BinomialStepping(30.0)
 initial = secondary_contact(arch)
 
 # Run 200 generations to equilibrium
-trajectory = simulate(arch, sel, mig, initial; n_generations = 200)
+trajectory = simulate(arch, mat, sel, mig, initial; n_generations = 200)
 
 # Extract allele frequencies at the final generation
 p = allele_frequencies(trajectory[:, :, end], arch)
@@ -67,6 +68,16 @@ three diploid genotypes (A1A1, A1A2, A2A2). The `:codominant` dominance mode
 means each genotype maps to a distinct phenotype — there is no masking — which
 is the appropriate model for *Heliconius* warning colors where heterozygotes
 display an intermediate pattern.
+
+`RandomMating()` specifies that individuals mate at random within each deme
+each generation. Random mating restores Hardy-Weinberg (HW) proportions within
+demes — a step required because migration mixing across demes introduces
+Wahlund-effect heterozygote deficits relative to HW expectations. Without this
+step, heterozygote deficits accumulate over generations and produce artificially
+narrow clines. `RandomMating` is parameter-free: the type exists to dispatch
+the `mate!` function, not to carry data. It is the appropriate default for most
+warning-color hybrid zone models, and matches the convention used in Mallet's
+original Pascal simulators.
 
 `FrequencyDependentSelection(s = 0.3)` implements the Mallet–Barton fitness
 function in which the rare phenotype suffers a fitness cost. The parameter `s`
@@ -87,9 +98,11 @@ geographically isolated and are now meeting for the first time. An odd number
 of demes is conventional so the contact point is a single central deme and the
 two flanking regions are equal in length.
 
-`simulate` runs the per-generation loop: selection then migration in the
-default `:selection_first` order. The result is a three-dimensional array
-indexed as `(genotype, deme, generation)`, where `trajectory[:, :, 1]` is
+`simulate` runs the per-generation loop in the default `:mate_migrate_select`
+order — mating restores HW within demes, then migration redistributes
+frequencies across demes, then selection acts on local frequencies. This
+matches Mallet's Pascal reference ordering. The result is a three-dimensional
+array indexed as `(genotype, deme, generation)`, where `trajectory[:, :, 1]` is
 the initial condition and `trajectory[:, :, g+1]` is the state after
 generation `g`. With `n_generations = 200`, the array has 201 time slices.
 
@@ -140,7 +153,7 @@ selection_values = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]
 clines = Vector{Vector{Float64}}()
 for s in selection_values
     sel_i  = FrequencyDependentSelection(s = s)
-    final  = simulate(arch, sel_i, mig, initial;
+    final  = simulate(arch, mat, sel_i, mig, initial;
                       n_generations = 200,
                       save_trajectory = false)
     push!(clines, allele_frequencies(final, arch))
@@ -201,9 +214,9 @@ workflow is familiar:
   compare the resulting cline shape to the codominant case. Dominance breaks
   the symmetry of the cline: the dominant allele tends to introgress further
   into the territory of the recessive one.
-- Swap the lifecycle order to `:migration_first` by passing
-  `lifecycle_order = :migration_first` to `simulate`, and compare the cline
-  shape at high `s`. The ordering matters most when selection is strong
+- Swap the lifecycle order by passing `lifecycle_order = :mate_select_migrate`
+  or `lifecycle_order = :select_migrate_mate` to `simulate`, and compare the
+  cline shape at high `s`. The ordering matters most when selection is strong
   relative to migration.
 - Run longer simulations (`n_generations = 500` or more) to verify that the
   cline has genuinely reached equilibrium rather than still evolving slowly.

@@ -48,6 +48,14 @@ HybridZones.MigrationModels.max_distance
 HybridZones.MigrationModels.kernel
 ```
 
+## Mating models
+
+```@docs
+HybridZones.MatingModels.MatingModel
+HybridZones.MatingModels.RandomMating
+HybridZones.MatingModels.mate!
+```
+
 ## Simulation
 
 ```@docs

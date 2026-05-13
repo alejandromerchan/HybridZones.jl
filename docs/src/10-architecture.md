@@ -264,9 +264,26 @@ Defines abstract `MigrationModel` and concrete subtypes including
 `Gaussian`, and `AsymmetricStepping`. Migration models redistribute
 frequencies across demes according to a kernel.
 
+### `MatingModels`
+
+Defines abstract `MatingModel` and concrete subtypes implementing within-deme
+mating. The initial concrete subtype is `RandomMating`, which restores
+Hardy-Weinberg proportions within each deme each generation. Random mating
+is parameter-free — the type exists to dispatch `mate!`, not to carry data.
+
+Migration mixing across demes introduces Wahlund-effect heterozygote deficits
+relative to HW expectations. Applying `mate!` each generation restores HW
+within demes, matching the biological convention used in Mallet's Pascal
+simulators and the broader population genetics literature.
+
+The lifecycle now includes three operations per generation: mating, migration,
+and selection, applied in the order specified by the `lifecycle_order` argument
+to `simulate`. The default `:mate_migrate_select` order matches Mallet's
+original Pascal implementation.
+
 ### `HybridZones` (top-level)
 
-Composes architecture, selection, and migration models into a `simulate`
+Composes architecture, mating, selection, and migration models into a `simulate`
 function that runs forward simulations under a specified lifecycle. Provides
 convenience constructors for common scenarios (warning-color cline, ecological
 cline, tension zone).
