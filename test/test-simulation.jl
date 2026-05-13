@@ -3,6 +3,7 @@ using Test
 
 # Shared fixtures used across multiple testsets
 const _arch = OneLocusDiploid(dominance = :codominant)
+const _mat = RandomMating()
 const _sel = FrequencyDependentSelection(s = 0.3)
 const _mig = BinomialStepping(30.0)
 const _initial = secondary_contact(_arch)
@@ -99,7 +100,7 @@ end
 
 @testset "allele_frequencies — 3D trajectory" begin
     arch = OneLocusDiploid()
-    traj = simulate(_arch, _sel, _mig, _initial; n_generations = 5)
+    traj = simulate(_arch, _mat, _sel, _mig, _initial; n_generations = 5)
     freq_traj = allele_frequencies(traj, arch)
     @test size(freq_traj) == (101, 6)
     # first time slice matches allele_frequencies of initial state
@@ -111,30 +112,38 @@ end
 # ──────────────────────────────────────────────────────────────
 
 @testset "simulate — invalid n_generations throws" begin
-    @test_throws ArgumentError simulate(_arch, _sel, _mig, _initial; n_generations = 0)
-    @test_throws ArgumentError simulate(_arch, _sel, _mig, _initial; n_generations = -1)
+    @test_throws ArgumentError simulate(
+        _arch, _mat, _sel, _mig, _initial; n_generations = 0
+    )
+    @test_throws ArgumentError simulate(
+        _arch, _mat, _sel, _mig, _initial; n_generations = -1
+    )
 end
 
 @testset "simulate — invalid lifecycle_order throws" begin
     @test_throws ArgumentError simulate(
-        _arch, _sel, _mig, _initial; n_generations = 1, lifecycle_order = :random_order
+        _arch, _mat, _sel, _mig, _initial;
+        n_generations = 1, lifecycle_order = :random_order
     )
     @test_throws ArgumentError simulate(
-        _arch, _sel, _mig, _initial; n_generations = 1, lifecycle_order = :both
+        _arch, _mat, _sel, _mig, _initial;
+        n_generations = 1, lifecycle_order = :selection_first
     )
 end
 
 @testset "simulate — mismatched initial_state rows throws" begin
     wrong_rows = zeros(2, 101)  # 2 rows instead of 3
     @test_throws DimensionMismatch simulate(
-        _arch, _sel, _mig, wrong_rows; n_generations = 1
+        _arch, _mat, _sel, _mig, wrong_rows; n_generations = 1
     )
 end
 
 @testset "simulate — initial_state columns not summing to 1 throws" begin
     bad_state = copy(_initial)
     bad_state[1, 5] = 0.5  # column 5 now sums to 1.5
-    @test_throws ArgumentError simulate(_arch, _sel, _mig, bad_state; n_generations = 1)
+    @test_throws ArgumentError simulate(
+        _arch, _mat, _sel, _mig, bad_state; n_generations = 1
+    )
 end
 
 # ──────────────────────────────────────────────────────────────
@@ -143,17 +152,18 @@ end
 
 @testset "simulate — trajectory shape and initial slice" begin
     n_gens = 10
-    traj = simulate(_arch, _sel, _mig, _initial; n_generations = n_gens)
+    traj = simulate(_arch, _mat, _sel, _mig, _initial; n_generations = n_gens)
     @test size(traj) == (3, 101, n_gens + 1)
     @test traj[:, :, 1] == _initial
 end
 
 @testset "simulate — save_trajectory=false returns 2D final state" begin
     n_gens = 10
-    traj = simulate(_arch, _sel, _mig, _initial; n_generations = n_gens)
+    traj = simulate(_arch, _mat, _sel, _mig, _initial; n_generations = n_gens)
     final_traj = traj[:, :, end]
     final_only = simulate(
-        _arch, _sel, _mig, _initial; n_generations = n_gens, save_trajectory = false
+        _arch, _mat, _sel, _mig, _initial;
+        n_generations = n_gens, save_trajectory = false
     )
     @test final_only isa Matrix
     @test size(final_only) == (3, 101)
@@ -164,9 +174,9 @@ end
 # simulate — mass conservation
 # ──────────────────────────────────────────────────────────────
 
-@testset "simulate — mass conservation across generations" begin
+@testset "simulate — mass conservation across generations (mate_migrate_select)" begin
     n_gens = 20
-    traj = simulate(_arch, _sel, _mig, _initial; n_generations = n_gens)
+    traj = simulate(_arch, _mat, _sel, _mig, _initial; n_generations = n_gens)
     for g in 1:(n_gens + 1)
         for j in 1:101
             @test isapprox(sum(traj[:, j, g]), 1.0; atol = 1e-10)
@@ -174,11 +184,24 @@ end
     end
 end
 
-@testset "simulate — mass conservation, migration_first" begin
+@testset "simulate — mass conservation, mate_select_migrate" begin
     n_gens = 20
     traj = simulate(
-        _arch, _sel, _mig, _initial;
-        n_generations = n_gens, lifecycle_order = :migration_first
+        _arch, _mat, _sel, _mig, _initial;
+        n_generations = n_gens, lifecycle_order = :mate_select_migrate
+    )
+    for g in 1:(n_gens + 1)
+        for j in 1:101
+            @test isapprox(sum(traj[:, j, g]), 1.0; atol = 1e-10)
+        end
+    end
+end
+
+@testset "simulate — mass conservation, select_migrate_mate" begin
+    n_gens = 20
+    traj = simulate(
+        _arch, _mat, _sel, _mig, _initial;
+        n_generations = n_gens, lifecycle_order = :select_migrate_mate
     )
     for g in 1:(n_gens + 1)
         for j in 1:101
@@ -191,65 +214,134 @@ end
 # simulate — lifecycle ordering produces different results
 # ──────────────────────────────────────────────────────────────
 
-@testset "simulate — lifecycle ordering produces different results" begin
+@testset "simulate — all three lifecycle orderings produce different results" begin
     n_gens = 50
-    traj_sf = simulate(
-        _arch, _sel, _mig, _initial;
-        n_generations = n_gens, lifecycle_order = :selection_first
+    traj_mms = simulate(
+        _arch, _mat, _sel, _mig, _initial;
+        n_generations = n_gens, lifecycle_order = :mate_migrate_select
     )
-    traj_mf = simulate(
-        _arch, _sel, _mig, _initial;
-        n_generations = n_gens, lifecycle_order = :migration_first
+    traj_msm = simulate(
+        _arch, _mat, _sel, _mig, _initial;
+        n_generations = n_gens, lifecycle_order = :mate_select_migrate
     )
-    # Final states must differ; check that maximum absolute difference is nonzero
-    @test maximum(abs.(traj_sf[:, :, end] .- traj_mf[:, :, end])) > 1e-6
+    traj_smm = simulate(
+        _arch, _mat, _sel, _mig, _initial;
+        n_generations = n_gens, lifecycle_order = :select_migrate_mate
+    )
+    @test maximum(abs.(traj_mms[:, :, end] .- traj_msm[:, :, end])) > 1e-6
+    @test maximum(abs.(traj_mms[:, :, end] .- traj_smm[:, :, end])) > 1e-6
+    @test maximum(abs.(traj_msm[:, :, end] .- traj_smm[:, :, end])) > 1e-6
+end
+
+@testset "simulate — lifecycle ordering affects cline width" begin
+    # :select_migrate_mate produces a broader cline than :mate_migrate_select.
+    # Both orderings include HW restoration; the difference reflects when in
+    # the generation selection acts relative to the post-migration mixing.
+    n_gens = 200
+    arch = OneLocusDiploid(dominance = :codominant)
+    sel = FrequencyDependentSelection(s = 0.3)
+    mig = BinomialStepping(30.0)
+    initial = secondary_contact(arch)
+
+    state_mms = simulate(arch, _mat, sel, mig, initial;
+        n_generations = n_gens, lifecycle_order = :mate_migrate_select,
+        save_trajectory = false)
+    state_smm = simulate(arch, _mat, sel, mig, initial;
+        n_generations = n_gens, lifecycle_order = :select_migrate_mate,
+        save_trajectory = false)
+
+    freq_mms = allele_frequencies(state_mms, arch)
+    freq_smm = allele_frequencies(state_smm, arch)
+
+    # Cline width: count demes in the 10%-90% transition zone
+    width_mms = count(f -> 0.1 < f < 0.9, freq_mms)
+    width_smm = count(f -> 0.1 < f < 0.9, freq_smm)
+
+    @test width_smm > width_mms
 end
 
 # ──────────────────────────────────────────────────────────────
 # simulate — comparison with manual loop
 # ──────────────────────────────────────────────────────────────
 
-@testset "simulate — matches manual selection then migration loop" begin
+@testset "simulate — matches manual mate→migrate→select loop" begin
     n_gens = 8
     arch = _arch
+    mat = _mat
     sel = _sel
     mig = _mig
     initial = secondary_contact(arch)
 
-    # Manual loop: select! then migrate! row-by-row
+    # Manual loop: mate!, then migrate! row-by-row, then select!
     manual = copy(initial)
-    buf = similar(manual)
+    buf1 = similar(manual)
+    buf2 = similar(manual)
     for _ in 1:n_gens
-        select!(buf, manual, sel, arch)
+        mate!(buf1, manual, mat, arch)
         for i in 1:3
-            migrate!(@view(manual[i, :]), @view(buf[i, :]), mig)
+            migrate!(@view(buf2[i, :]), @view(buf1[i, :]), mig)
         end
+        select!(manual, buf2, sel, arch)
     end
 
-    simulated = simulate(arch, sel, mig, initial; n_generations = n_gens,
+    simulated = simulate(arch, mat, sel, mig, initial;
+        n_generations = n_gens,
+        lifecycle_order = :mate_migrate_select,
         save_trajectory = false)
     @test simulated ≈ manual
 end
 
-@testset "simulate — matches manual migration then selection loop" begin
+@testset "simulate — matches manual mate→select→migrate loop" begin
     n_gens = 8
     arch = _arch
+    mat = _mat
     sel = _sel
     mig = _mig
     initial = secondary_contact(arch)
 
-    # Manual loop: migrate! row-by-row then select!
+    # Manual loop: mate!, then select!, then migrate! row-by-row
     manual = copy(initial)
-    buf = similar(manual)
+    buf1 = similar(manual)
+    buf2 = similar(manual)
     for _ in 1:n_gens
+        mate!(buf1, manual, mat, arch)
+        select!(buf2, buf1, sel, arch)
         for i in 1:3
-            migrate!(@view(buf[i, :]), @view(manual[i, :]), mig)
+            migrate!(@view(manual[i, :]), @view(buf2[i, :]), mig)
         end
-        select!(manual, buf, sel, arch)
     end
 
-    simulated = simulate(arch, sel, mig, initial; n_generations = n_gens,
-        lifecycle_order = :migration_first, save_trajectory = false)
+    simulated = simulate(arch, mat, sel, mig, initial;
+        n_generations = n_gens,
+        lifecycle_order = :mate_select_migrate,
+        save_trajectory = false)
+    @test simulated ≈ manual
+end
+
+@testset "simulate — matches manual select→migrate→mate loop" begin
+    n_gens = 8
+    arch = _arch
+    mat = _mat
+    sel = _sel
+    mig = _mig
+    initial = secondary_contact(arch)
+
+    # Manual loop: select!, then migrate! row-by-row, then mate!
+    manual = copy(initial)
+    buf1 = similar(manual)
+    buf2 = similar(manual)
+    for _ in 1:n_gens
+        select!(buf1, manual, sel, arch)
+        for i in 1:3
+            migrate!(@view(buf2[i, :]), @view(buf1[i, :]), mig)
+        end
+        mate!(manual, buf2, mat, arch)
+    end
+
+    simulated = simulate(arch, mat, sel, mig, initial;
+        n_generations = n_gens,
+        lifecycle_order = :select_migrate_mate,
+        save_trajectory = false)
     @test simulated ≈ manual
 end
 
@@ -263,7 +355,7 @@ end
     mig = BinomialStepping(30.0)
     initial = secondary_contact(arch)
 
-    state200 = simulate(arch, sel, mig, initial; n_generations = 200,
+    state200 = simulate(arch, _mat, sel, mig, initial; n_generations = 200,
         save_trajectory = false)
     freq200 = allele_frequencies(state200, arch)
 
@@ -287,9 +379,9 @@ end
     mig = BinomialStepping(30.0)
     initial = secondary_contact(arch)
 
-    state200 = simulate(arch, sel, mig, initial; n_generations = 200,
+    state200 = simulate(arch, _mat, sel, mig, initial; n_generations = 200,
         save_trajectory = false)
-    state400 = simulate(arch, sel, mig, initial; n_generations = 400,
+    state400 = simulate(arch, _mat, sel, mig, initial; n_generations = 400,
         save_trajectory = false)
 
     freq200 = allele_frequencies(state200, arch)
@@ -306,6 +398,7 @@ end
 @testset "simulate — does not mutate initial_state" begin
     initial = secondary_contact(_arch)
     initial_copy = copy(initial)
-    simulate(_arch, _sel, _mig, initial; n_generations = 20, save_trajectory = false)
+    simulate(_arch, _mat, _sel, _mig, initial; n_generations = 20,
+        save_trajectory = false)
     @test initial == initial_copy
 end
