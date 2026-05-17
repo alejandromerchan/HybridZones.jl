@@ -144,9 +144,12 @@ end
 end
 
 @testset "SemiDominantFDS — construction valid s" begin
-    @test SemiDominantFrequencyDependentSelection(0.0) isa SemiDominantFrequencyDependentSelection
-    @test SemiDominantFrequencyDependentSelection(0.3) isa SemiDominantFrequencyDependentSelection
-    @test SemiDominantFrequencyDependentSelection(1.0) isa SemiDominantFrequencyDependentSelection
+    @test SemiDominantFrequencyDependentSelection(0.0) isa
+          SemiDominantFrequencyDependentSelection
+    @test SemiDominantFrequencyDependentSelection(0.3) isa
+          SemiDominantFrequencyDependentSelection
+    @test SemiDominantFrequencyDependentSelection(1.0) isa
+          SemiDominantFrequencyDependentSelection
 end
 
 @testset "SemiDominantFDS — construction invalid s throws" begin
