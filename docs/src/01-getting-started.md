@@ -69,6 +69,30 @@ means each genotype maps to a distinct phenotype — there is no masking — whi
 is the appropriate model for *Heliconius* warning colors where heterozygotes
 display an intermediate pattern.
 
+This is *strict* codominance: A1A1, A1A2, and A2A2 are each treated as a
+separate phenotype class, and selection is assigned based on how common
+*that specific genotype* is in the local deme. There is no cross-similarity
+between the heterozygote and either homozygote. Biologically, this is the
+right model when predators recognise heterozygote warning patterns as a
+distinct class — when the intermediate pattern is visually different enough
+from both parental types that the predator community has learned a separate
+avoidance response. Historical Pascal implementations used a different model
+(semi-dominance, where heterozygote perceived frequency includes contributions
+from both homozygotes); see the [Validation](30-validation.md) document for
+a detailed comparison of the two approaches.
+
+The other dominance modes — `:dominant_first` and `:recessive_first` — produce
+qualitatively different dynamics in single-locus systems. Under those modes,
+`FrequencyDependentSelection` has an unstable interior equilibrium, and the
+`secondary_contact` initial condition places allele frequencies below the
+unstable threshold for the recessive allele. As a result, the recessive allele
+sweeps to extinction across the transect rather than producing a stable cline.
+This is biologically correct: single-locus dominance under frequency-dependent
+selection cannot maintain a stable polymorphism without additional forces. Real
+warning-color systems with dominant patterns are stabilized by multi-locus
+epistasis across colour-pattern loci, which is a planned extension to the
+package.
+
 `RandomMating()` specifies that individuals mate at random within each deme
 each generation. Random mating restores Hardy-Weinberg (HW) proportions within
 demes — a step required because migration mixing across demes introduces
@@ -205,7 +229,11 @@ The [Reference](95-reference.md) page documents all exported types and
 functions with their full parameter lists. The [Architecture](10-architecture.md)
 document describes the package's design principles and the rationale for the
 composition-over-hardcoding approach. The [Performance](20-performance.md) document
-covers benchmarking methodology and identified optimization opportunities.
+covers benchmarking methodology and identified optimization opportunities. The
+[Validation](30-validation.md) document records the comparison against Mallet's
+original Pascal reference implementation and the empirical findings from that
+work — including the selection-model distinction (strict codominance here vs
+semi-dominance in Pascal) and the lifecycle-ordering effects on cline width.
 
 For further exploration, a few directions are worth trying once the basic
 workflow is familiar:

@@ -112,6 +112,29 @@ simulation, msprime for backward-in-time coalescent simulation, or
 custom implementations of the Sasaki et al. reaction-diffusion
 framework for population density dynamics.
 
+**Semi-dominant frequency-dependent selection.** Mallet's Pascal WC1SEDO uses
+a semi-dominant selection model where the heterozygote's perceived phenotype
+frequency is a weighted mixture of contributions from both homozygote classes.
+A `SemiDominantFDS` concrete subtype of `SelectionModel` would implement this
+mixing for users requiring exact Pascal reproducibility (e.g., to reproduce
+specific published analyses or compare published fit values from the original
+Mallet 1990 *erato* data). See the [Validation](30-validation.md) document for
+a detailed account of the strict-codominant vs semi-dominant distinction and
+its quantitative effect on cline width.
+
+**Multi-locus architectures.** `MultiLocusUnlinked` and `MultiLocusRecombining`
+are planned for cases where single-locus models are insufficient — in particular,
+for systems where dominant or recessive alleles at a single locus would produce
+bistable dynamics rather than stable clines. Real warning-color systems with
+dominant patterns are stabilized by epistasis across multiple colour-pattern
+loci, which requires at least a two-locus model to capture.
+
+**Assortative mating.** A concrete `AssortativeMating` subtype of `MatingModel`,
+parallel to `RandomMating`, for systems where individuals preferentially mate
+with phenotypically similar individuals. Assortative mating by warning pattern
+is observed in some *Heliconius* species and contributes to reproductive
+isolation between colour-pattern races.
+
 ## Historical lineage
 
 The framework HybridZones.jl modernizes was originally developed in Turbo
@@ -257,6 +280,19 @@ Defines abstract `SelectionModel` and concrete subtypes including
 Selection models act on population state and produce post-selection
 frequencies.
 
+`FrequencyDependentSelection` with `:codominant` dominance implements *strict*
+codominance: each of the three diploid genotypes (A1A1, A1A2, A2A2) is treated
+as a distinct phenotype with no cross-similarity. Fitness at each deme is
+computed from how common *that specific genotype* is locally. This differs from
+the *semi-dominant* model used in Mallet's Pascal WC1SEDO program, where the
+heterozygote's perceived phenotype frequency includes weighted contributions
+from both homozygote classes (via Pascal's `SimilarPhenotypes` mixing, lines
+720–735 of WC1SEDO.PAS). A future `SemiDominantFDS` concrete subtype
+implementing this semi-dominance mixing is a recognized extension direction —
+it would add a new subtype of `SelectionModel` with its own `select!` method
+and require no changes to other submodules. It is not currently planned but
+the architecture supports it naturally.
+
 ### `MigrationModels`
 
 Defines abstract `MigrationModel` and concrete subtypes including
@@ -287,6 +323,25 @@ Composes architecture, mating, selection, and migration models into a `simulate`
 function that runs forward simulations under a specified lifecycle. Provides
 convenience constructors for common scenarios (warning-color cline, ecological
 cline, tension zone).
+
+Three lifecycle orderings are supported via the `lifecycle_order` keyword to
+`simulate`: `:mate_migrate_select` (default, matches Mallet's Pascal ordering),
+`:mate_select_migrate`, and `:select_migrate_mate`. These produce different cline
+widths — the default ordering produces the narrowest cline because selection acts
+on a post-migration state where Wahlund-effect heterozygote deficits amplify
+the rare-morph penalty; the other two orderings produce wider clines because
+selection acts on a state closer to Hardy-Weinberg.
+
+A mathematical curiosity: `:mate_select_migrate` and `:select_migrate_mate`
+produce identical allele frequency trajectories (maximum element-wise difference
+of 0.0 at floating-point precision) despite producing different genotype frequency
+trajectories. This is because `RandomMating` is an idempotent allele-frequency-
+conserving projection: mating maps any genotype state to its HW projection, so
+prepending or appending a mating step around a sequence of allele-frequency-
+preserving operations (like migration) leaves the allele frequencies unchanged.
+Users who care about within-deme genotype dynamics should use the full genotype
+trajectory to distinguish the two orderings; users who only care about allele
+frequencies can treat them as equivalent.
 
 ### `ClineFitting`
 

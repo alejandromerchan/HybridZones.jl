@@ -9,13 +9,24 @@ decisions and as a guide for future optimization work.
 ## Current performance
 
 A representative single-locus simulation (101 demes, 200 generations,
-σ²=30, s=0.3) on modern hardware:
+σ²=30, s=0.3, `RandomMating`, default `:mate_migrate_select` lifecycle)
+on modern hardware:
 
 - ~19 ms per simulation
 - 6 allocations regardless of generation count (per-generation loop
   is allocation-free)
 - Memory: ~5 KiB working buffers; ~480 KiB additional for trajectory
   storage when `save_trajectory=true`
+
+The mating step (`RandomMating`) adds a per-deme Hardy-Weinberg projection
+pass each generation — a simple arithmetic loop over the `n_demes` columns
+of the state matrix. This is negligible relative to the migration convolution,
+which is `O(n_demes × kernel_width)` per genotype per generation. For the
+standard σ²=30 parameters the migration kernel spans 121 demes, so mating
+adds roughly 1% to migration runtime. The mating step does not introduce
+additional allocations beyond the existing buffer reuse pattern; the same
+two scratch buffers preallocated before the generation loop serve all three
+lifecycle operations.
 
 This performance is adequate for typical research workflows — a
 1000-combination parameter sweep completes in roughly 20 seconds.
@@ -29,9 +40,12 @@ but deferred. They're documented here for future work.
 
 ### Migration inner loop: branch-free boundary handling
 
-**Status:** Deferred. To be addressed after Pascal validation is in
-place to ensure optimizations don't introduce subtle correctness
-regressions.
+**Status:** Deferred. The Pascal validation work is now substantially
+complete (see the [Validation](30-validation.md) document), but the
+package is currently fast enough for typical research workflows that
+this optimization has not been pursued. It remains available as a
+future target if large multi-locus parameter sweeps create runtime
+pressure.
 
 **Profile evidence:** Profiling a 10,000-generation simulation showed
 migration code consuming approximately 99% of total runtime. The
@@ -103,11 +117,12 @@ Standard benchmark setup:
     using HybridZones
 
     arch = OneLocusDiploid(dominance = :codominant)
-    sel = FrequencyDependentSelection(s = 0.3)
-    mig = BinomialStepping(30.0)
+    mat  = RandomMating()
+    sel  = FrequencyDependentSelection(s = 0.3)
+    mig  = BinomialStepping(30.0)
     initial = secondary_contact(arch)
 
-    @btime simulate($arch, $sel, $mig, $initial;
+    @btime simulate($arch, $mat, $sel, $mig, $initial;
                     n_generations = 200,
                     save_trajectory = false)
 
@@ -118,7 +133,7 @@ many short ones:
     using Profile
     Profile.init(delay = 0.001)
     Profile.clear()
-    @profile simulate(arch, sel, mig, initial;
+    @profile simulate(arch, mat, sel, mig, initial;
                       n_generations = 10000,
                       save_trajectory = false)
     Profile.print(format = :flat, sortedby = :count)
