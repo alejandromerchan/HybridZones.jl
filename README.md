@@ -17,13 +17,21 @@ implementing the Mallet & Barton (1989) framework in Julia.
 
 HybridZones.jl is under active development. The current state:
 
-- Single-locus simulation under frequency-dependent selection and
-  binomial stepping-stone migration is implemented and validated
-  against analytical expectations
+- Single-locus simulation under frequency-dependent selection,
+  random mating (Hardy-Weinberg restoration), and binomial
+  stepping-stone migration is implemented and validated against
+  analytical expectations
 - Mass conservation, equilibrium convergence, and cline symmetry
   hold to floating-point precision
-- Validation against the original Pascal reference implementations
-  (Mallet's WC1SEDO, WC3ARBCD, etc.) is in progress
+- Two complementary selection models are implemented:
+  `FrequencyDependentSelection` (strict codominance) and
+  `SemiDominantFrequencyDependentSelection` (Pascal semi-dominance,
+  for exact reproducibility of Mallet's WC1SEDO outputs)
+- Validation against Mallet's WC1SEDO Pascal simulator is
+  substantially complete: the 1.37× cline-width difference between
+  the two implementations is fully diagnosed — it is explained
+  entirely by the selection model distinction (strict codominance
+  vs. Pascal semi-dominance), not by migration or lifecycle differences
 - Multi-locus types, cline fitting, and disequilibrium estimation
   are planned but not yet implemented
 - The package is not yet registered with the Julia General registry
@@ -67,8 +75,9 @@ Pkg.add(url="https://github.com/alejandromerchan/HybridZones.jl")
 using HybridZones
 
 # Build a simulation: single-locus codominant model,
-# frequency-dependent selection, stepping-stone migration
+# random mating, frequency-dependent selection, stepping-stone migration
 arch = OneLocusDiploid(dominance = :codominant)
+mat  = RandomMating()
 sel  = FrequencyDependentSelection(s = 0.3)
 mig  = BinomialStepping(30.0)
 
@@ -76,7 +85,7 @@ mig  = BinomialStepping(30.0)
 initial = secondary_contact(arch)
 
 # Simulate 200 generations (enough to reach equilibrium)
-trajectory = simulate(arch, sel, mig, initial; n_generations = 200)
+trajectory = simulate(arch, mat, sel, mig, initial; n_generations = 200)
 
 # Extract allele frequencies from genotype state
 cline = allele_frequencies(trajectory[:, :, end], arch)
@@ -96,6 +105,7 @@ Key pages:
 - [Getting Started](https://alejandromerchan.github.io/HybridZones.jl/dev/01-getting-started/) — your first simulation
 - [Architecture](https://alejandromerchan.github.io/HybridZones.jl/dev/10-architecture/) — design intent and development roadmap
 - [Performance](https://alejandromerchan.github.io/HybridZones.jl/dev/20-performance/) — benchmarking and optimization notes
+- [Validation](https://alejandromerchan.github.io/HybridZones.jl/dev/30-validation/) — comparison against Pascal reference implementations
 - [API Reference](https://alejandromerchan.github.io/HybridZones.jl/dev/95-reference/) — full function and type documentation
 
 ## Contributing
