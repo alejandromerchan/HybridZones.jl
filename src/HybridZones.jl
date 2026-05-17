@@ -37,7 +37,8 @@ using .MigrationModels:
 
 include("SelectionModels.jl")
 using .SelectionModels:
-                        SelectionModel, FrequencyDependentSelection, select!,
+                        SelectionModel, FrequencyDependentSelection,
+                        SemiDominantFrequencyDependentSelection, select!,
                         selection_coefficient
 
 include("MatingModels.jl")
@@ -51,7 +52,8 @@ export GeneticArchitecture, OneLocusDiploid
 export dominance, n_loci, n_alleles, allele_names, n_genotypes
 export MigrationModel, BinomialStepping, migrate!
 export migration_variance, max_distance
-export SelectionModel, FrequencyDependentSelection, select!, selection_coefficient
+export SelectionModel, FrequencyDependentSelection, SemiDominantFrequencyDependentSelection,
+    select!, selection_coefficient
 export MatingModel, RandomMating, mate!
 export simulate, secondary_contact, allele_frequencies
 

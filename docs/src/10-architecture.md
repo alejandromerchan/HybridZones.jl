@@ -112,16 +112,6 @@ simulation, msprime for backward-in-time coalescent simulation, or
 custom implementations of the Sasaki et al. reaction-diffusion
 framework for population density dynamics.
 
-**Semi-dominant frequency-dependent selection.** Mallet's Pascal WC1SEDO uses
-a semi-dominant selection model where the heterozygote's perceived phenotype
-frequency is a weighted mixture of contributions from both homozygote classes.
-A `SemiDominantFDS` concrete subtype of `SelectionModel` would implement this
-mixing for users requiring exact Pascal reproducibility (e.g., to reproduce
-specific published analyses or compare published fit values from the original
-Mallet 1990 *erato* data). See the [Validation](30-validation.md) document for
-a detailed account of the strict-codominant vs semi-dominant distinction and
-its quantitative effect on cline width.
-
 **Multi-locus architectures.** `MultiLocusUnlinked` and `MultiLocusRecombining`
 are planned for cases where single-locus models are insufficient — in particular,
 for systems where dominant or recessive alleles at a single locus would produce
@@ -283,15 +273,18 @@ frequencies.
 `FrequencyDependentSelection` with `:codominant` dominance implements *strict*
 codominance: each of the three diploid genotypes (A1A1, A1A2, A2A2) is treated
 as a distinct phenotype with no cross-similarity. Fitness at each deme is
-computed from how common *that specific genotype* is locally. This differs from
-the *semi-dominant* model used in Mallet's Pascal WC1SEDO program, where the
-heterozygote's perceived phenotype frequency includes weighted contributions
-from both homozygote classes (via Pascal's `SimilarPhenotypes` mixing, lines
-720–735 of WC1SEDO.PAS). A future `SemiDominantFDS` concrete subtype
-implementing this semi-dominance mixing is a recognized extension direction —
-it would add a new subtype of `SelectionModel` with its own `select!` method
-and require no changes to other submodules. It is not currently planned but
-the architecture supports it naturally.
+computed from how common *that specific genotype* is locally.
+
+`SemiDominantFrequencyDependentSelection` implements the alternative model used
+in Mallet's Pascal WC1SEDO program, where the heterozygote's perceived phenotype
+frequency includes weighted contributions from both homozygote classes (via
+Pascal's `SimilarPhenotypes` mixing, lines 720–735 of WC1SEDO.PAS). This model
+is appropriate when heterozygotes have visually intermediate phenotypes that
+share partial similarity with both parental forms. It dispatches only on
+`:codominant` dominance (the semi-dominance is intrinsic to the model, not to
+the dominance mode). See the [Validation](30-validation.md) document for a full
+account of the strict-codominant vs semi-dominant distinction and the quantitative
+effect on cline width.
 
 ### `MigrationModels`
 
