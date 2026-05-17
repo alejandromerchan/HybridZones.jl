@@ -53,7 +53,7 @@ export dominance, n_loci, n_alleles, allele_names, n_genotypes
 export MigrationModel, BinomialStepping, migrate!
 export migration_variance, max_distance
 export SelectionModel, FrequencyDependentSelection, SemiDominantFrequencyDependentSelection,
-    select!, selection_coefficient
+       select!, selection_coefficient
 export MatingModel, RandomMating, mate!
 export simulate, secondary_contact, allele_frequencies
 
