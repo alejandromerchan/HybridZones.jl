@@ -155,20 +155,25 @@ in the Peruvian systems his framework was originally developed for.
 
 ### Design decision
 
-HybridZones currently implements strict codominance via
-`FrequencyDependentSelection(s; ...)` with `:codominant` dominance.
-This is a deliberate choice supporting the case where heterozygotes
-have phenotypically distinct intermediate patterns that predators
-treat as a separate class.
+HybridZones implements two complementary selection models:
 
-For users requiring exact Pascal reproducibility — for example, to
-reproduce specific published analyses or to compare directly against
-the original Mallet 1990 *erato* fit values — a future `SemiDominantFDS`
-selection model implementing Pascal's semi-dominance mixing is a
-recognised extension direction. It would be a new concrete subtype
-of `SelectionModel` with its own `select!` method; no changes to
-other submodules would be required. See the
-[Architecture](10-architecture.md) document for context.
+- `FrequencyDependentSelection` with `:codominant` dominance implements *strict*
+  codominance: each of the three diploid genotypes (A1A1, A1A2, A2A2) is treated
+  as a distinct phenotype with no cross-similarity. This is appropriate when
+  heterozygotes have phenotypically distinct intermediate patterns that predators
+  treat as a separate class.
+
+- `SemiDominantFrequencyDependentSelection` implements Pascal's semi-dominance
+  mixing: the heterozygote's perceived phenotype frequency includes weighted
+  contributions from both homozygote classes (0.5 weighting each way). This
+  model reproduces exact Pascal cline widths and is appropriate when
+  heterozygotes share visual similarity with both parental phenotypes.
+
+For users requiring exact Pascal reproducibility — for example, to reproduce
+specific published analyses or to compare directly against the original
+Mallet 1990 *erato* fit values — use `SemiDominantFrequencyDependentSelection`.
+See the [Architecture](10-architecture.md) document for the full model
+descriptions and biological interpretation.
 
 ## Lifecycle ordering effects
 

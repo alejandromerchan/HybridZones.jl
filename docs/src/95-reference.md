@@ -37,6 +37,12 @@ HybridZones.SelectionModels.select!
 HybridZones.SelectionModels.selection_coefficient
 ```
 
+## Semi-dominant selection
+
+```@docs
+HybridZones.SelectionModels.SemiDominantFrequencyDependentSelection
+```
+
 ## Migration models
 
 ```@docs
